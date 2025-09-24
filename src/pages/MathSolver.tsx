@@ -98,7 +98,7 @@ const MathSolver = () => {
         <div className="container mx-auto px-4 py-4">
           <Link to="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
             <Home className="h-6 w-6 text-primary" />
-            <span className="text-lg font-semibold">StudyHub</span>
+            <span className="text-lg font-semibold">Intellia</span>
           </Link>
         </div>
       </header>
