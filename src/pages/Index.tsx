@@ -1,4 +1,4 @@
-import { Calculator, Brain, BookOpen, ArrowRight } from "lucide-react";
+import { Calculator, Brain, BookOpen, ArrowRight, Calendar, FileEdit, FileText, Quote, Timer, CheckSquare, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "react-router-dom";
@@ -7,7 +7,7 @@ const Index = () => {
   const tools = [
     {
       title: "GPA Calculator",
-      description: "Calculate your GPA with course grades and credit hours",
+      description: "Calculate your GPA with numeric grades (40-100)",
       icon: Calculator,
       path: "/gpa-calculator",
       color: "text-primary",
@@ -18,6 +18,66 @@ const Index = () => {
       icon: Brain,
       path: "/flashcard-generator",
       color: "text-accent",
+      aiPowered: true,
+    },
+    {
+      title: "Study Planner",
+      description: "Generate daily/weekly study schedules from your exams",
+      icon: Calendar,
+      path: "/study-planner",
+      color: "text-primary",
+    },
+    {
+      title: "Essay Rewriter",
+      description: "Improve grammar, clarity, and style with AI",
+      icon: FileEdit,
+      path: "/essay-rewriter",
+      color: "text-accent",
+      aiPowered: true,
+    },
+    {
+      title: "Notes Summarizer",
+      description: "Condense long notes into bullet points with AI",
+      icon: FileText,
+      path: "/notes-summarizer",
+      color: "text-accent",
+      aiPowered: true,
+    },
+    {
+      title: "Citation Generator",
+      description: "Create MLA, APA, or Chicago-style references",
+      icon: Quote,
+      path: "/citation-generator",
+      color: "text-primary",
+    },
+    {
+      title: "Pomodoro Timer",
+      description: "Focus timer with customizable study/break intervals",
+      icon: Timer,
+      path: "/pomodoro-timer",
+      color: "text-primary",
+    },
+    {
+      title: "Exam Tracker",
+      description: "Track studied topics and visualize your progress",
+      icon: CheckSquare,
+      path: "/exam-tracker",
+      color: "text-primary",
+    },
+    {
+      title: "Math Problem Solver",
+      description: "Solve equations step-by-step with AI explanations",
+      icon: Calculator,
+      path: "/math-solver",
+      color: "text-accent",
+      aiPowered: true,
+    },
+    {
+      title: "Random Group Picker",
+      description: "Randomly select students for groups or presentations",
+      icon: Users,
+      path: "/group-picker",
+      color: "text-primary",
     },
   ];
 
@@ -63,23 +123,28 @@ const Index = () => {
             </p>
           </div>
           
-          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
             {tools.map((tool, index) => {
               const Icon = tool.icon;
               return (
                 <Link key={index} to={tool.path}>
-                  <Card className="group hover:shadow-elegant transition-all duration-300 hover:-translate-y-1 cursor-pointer h-full">
+                  <Card className="group hover:shadow-elegant transition-all duration-300 hover:-translate-y-1 cursor-pointer h-full relative">
+                    {tool.aiPowered && (
+                      <div className="absolute top-3 right-3 bg-accent text-accent-foreground text-xs px-2 py-1 rounded-full font-medium">
+                        AI
+                      </div>
+                    )}
                     <CardHeader className="text-center pb-2">
                       <div className="mx-auto mb-4 p-3 rounded-full bg-primary/10 w-fit">
                         <Icon className={`h-8 w-8 ${tool.color}`} />
                       </div>
-                      <CardTitle className="text-2xl">{tool.title}</CardTitle>
+                      <CardTitle className="text-xl">{tool.title}</CardTitle>
                     </CardHeader>
                     <CardContent className="text-center">
-                      <CardDescription className="text-base mb-6">
+                      <CardDescription className="text-sm mb-4">
                         {tool.description}
                       </CardDescription>
-                      <Button className="w-full group-hover:bg-primary-glow transition-colors">
+                      <Button size="sm" className="w-full group-hover:bg-primary-glow transition-colors">
                         Use Tool
                         <ArrowRight className="ml-2 h-4 w-4" />
                       </Button>
