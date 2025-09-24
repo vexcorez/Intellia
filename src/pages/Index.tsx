@@ -89,7 +89,7 @@ const Index = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <BookOpen className="h-8 w-8 text-primary" />
-              <h1 className="text-2xl font-bold text-foreground">StudyHub</h1>
+              <h1 className="text-2xl font-bold text-foreground">Intellia</h1>
             </div>
           </div>
         </div>
@@ -185,7 +185,7 @@ const Index = () => {
       <footer className="py-8 px-4 border-t bg-card">
         <div className="container mx-auto text-center">
           <p className="text-muted-foreground">
-            Made for students, by students. Free forever.
+            Made for students, by Ali Abu Harrah. Free forever.
           </p>
         </div>
       </footer>
