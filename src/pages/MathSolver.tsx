@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -21,6 +21,11 @@ const MathSolver = () => {
   const [problem, setProblem] = useState("");
   const [solution, setSolution] = useState<Solution | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+
+  // Show alert once on component mount
+  useEffect(() => {
+    toast.error("The math AI is pretty buggy and not fully developed.");
+  }, []);
 
   const solveProblem = async () => {
     if (!problem.trim()) {
