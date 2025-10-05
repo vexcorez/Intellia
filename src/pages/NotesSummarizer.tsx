@@ -1,13 +1,14 @@
 import { useState } from "react";
+import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, Home, Copy, Sparkles } from "lucide-react";
-import { Link } from "react-router-dom";
-import { toast } from "sonner";
+import { FileText, Copy, Sparkles } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const NotesSummarizer = () => {
+  const { toast } = useToast();
   const [originalNotes, setOriginalNotes] = useState("");
   const [summary, setSummary] = useState("");
   const [bulletPoints, setBulletPoints] = useState<string[]>([]);

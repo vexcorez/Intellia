@@ -1,13 +1,14 @@
 import { useState } from "react";
+import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileEdit, Home, Copy, Sparkles } from "lucide-react";
-import { Link } from "react-router-dom";
-import { toast } from "sonner";
+import { FileEdit, Copy, Sparkles } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const EssayRewriter = () => {
+  const { toast } = useToast();
   const [originalText, setOriginalText] = useState("");
   const [rewrittenText, setRewrittenText] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);

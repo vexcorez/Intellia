@@ -1,14 +1,15 @@
 import { useState } from "react";
+import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { Users, Shuffle, Plus, Trash2, Home, User } from "lucide-react";
-import { Link } from "react-router-dom";
-import { toast } from "sonner";
+import { Users, Shuffle, Plus, Trash2, User } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const GroupPicker = () => {
+  const { toast } = useToast();
   const [students, setStudents] = useState<string[]>([]);
   const [newStudent, setNewStudent] = useState("");
   const [groupSize, setGroupSize] = useState(4);

@@ -14,7 +14,179 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      flashcard_sets: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_public: boolean
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_public?: boolean
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_public?: boolean
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      flashcards: {
+        Row: {
+          back: string
+          created_at: string
+          front: string
+          id: string
+          set_id: string
+        }
+        Insert: {
+          back: string
+          created_at?: string
+          front: string
+          id?: string
+          set_id: string
+        }
+        Update: {
+          back?: string
+          created_at?: string
+          front?: string
+          id?: string
+          set_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flashcards_set_id_fkey"
+            columns: ["set_id"]
+            isOneToOne: false
+            referencedRelation: "flashcard_sets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      follows: {
+        Row: {
+          created_at: string
+          follower_id: string
+          following_id: string
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          follower_id: string
+          following_id: string
+          id?: string
+        }
+        Update: {
+          created_at?: string
+          follower_id?: string
+          following_id?: string
+          id?: string
+        }
+        Relationships: []
+      }
+      gpa_history: {
+        Row: {
+          courses: Json
+          created_at: string
+          gpa: number
+          id: string
+          total_credits: number
+          user_id: string
+        }
+        Insert: {
+          courses: Json
+          created_at?: string
+          gpa: number
+          id?: string
+          total_credits: number
+          user_id: string
+        }
+        Update: {
+          courses?: Json
+          created_at?: string
+          gpa?: number
+          id?: string
+          total_credits?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string
+          id: string
+          updated_at: string
+          user_id: string
+          username: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+          username: string
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+          username?: string
+        }
+        Relationships: []
+      }
+      user_stats: {
+        Row: {
+          created_at: string
+          decks_completed: number
+          id: string
+          last_study_date: string | null
+          study_streak: number
+          total_study_time: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          decks_completed?: number
+          id?: string
+          last_study_date?: string | null
+          study_streak?: number
+          total_study_time?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          decks_completed?: number
+          id?: string
+          last_study_date?: string | null
+          study_streak?: number
+          total_study_time?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

@@ -1,13 +1,14 @@
 import { useState, useEffect, useRef } from "react";
+import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Timer, Play, Pause, RotateCcw, Home, Settings } from "lucide-react";
-import { Link } from "react-router-dom";
-import { toast } from "sonner";
+import { Timer, Play, Pause, RotateCcw, Settings } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const PomodoroTimer = () => {
+  const { toast } = useToast();
   const [workDuration, setWorkDuration] = useState(25);
   const [breakDuration, setBreakDuration] = useState(5);
   const [currentTime, setCurrentTime] = useState(25 * 60);

@@ -1,12 +1,18 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Brain, Home, Shuffle, RotateCcw, Check, X } from "lucide-react";
-import { Link } from "react-router-dom";
-import { toast } from "sonner";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Brain, Shuffle, RotateCcw, Check, X, Save, Plus, BookOpen } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface Flashcard {
   question: string;
@@ -14,49 +20,65 @@ interface Flashcard {
 }
 
 const FlashcardGenerator = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [user, setUser] = useState<any>(null);
   const [notes, setNotes] = useState("");
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [savedSets, setSavedSets] = useState<any[]>([]);
+  const [setTitle, setSetTitle] = useState("");
+  const [setDescription, setSetDescription] = useState("");
+  const [isPublic, setIsPublic] = useState(false);
+  const [saveDialogOpen, setSaveDialogOpen] = useState(false);
 
-  // Mock API call - replace with actual AI API integration
+  useEffect(() => {
+    checkUser();
+  }, []);
+
+  const checkUser = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    setUser(session?.user ?? null);
+    if (session?.user) {
+      fetchSavedSets(session.user.id);
+    }
+  };
+
+  const fetchSavedSets = async (userId: string) => {
+    const { data } = await supabase
+      .from("flashcard_sets")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false });
+    
+    if (data) {
+      setSavedSets(data);
+    }
+  };
+
   const generateFlashcards = async () => {
     if (!notes.trim()) {
-      toast.error("Please enter some notes to generate flashcards");
+      toast({
+        title: "Notes required",
+        description: "Please enter some notes to generate flashcards",
+        variant: "destructive",
+      });
       return;
     }
 
     setIsGenerating(true);
     
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise(resolve => setTimeout(resolve, 1500));
       
-      // Mock flashcard generation based on notes content
-      const mockFlashcards: Flashcard[] = [
-        {
-          question: "What is the main topic discussed in these notes?",
-          answer: "Based on your notes, the main focus appears to be on the key concepts and definitions you've provided."
-        },
-        {
-          question: "What are the important terms mentioned?",
-          answer: "The important terms include the key vocabulary and concepts highlighted in your study material."
-        },
-        {
-          question: "How can you apply this knowledge?",
-          answer: "This knowledge can be applied through practice problems, real-world examples, and connecting concepts together."
-        }
-      ];
-
-      // Generate more realistic flashcards based on notes content
       const sentences = notes.split(/[.!?]+/).filter(s => s.trim().length > 10);
       const generatedCards: Flashcard[] = [];
 
-      sentences.slice(0, 8).forEach((sentence, index) => {
+      sentences.slice(0, 8).forEach((sentence) => {
         const cleanSentence = sentence.trim();
         if (cleanSentence) {
-          // Create question by removing key terms
           const words = cleanSentence.split(' ');
           if (words.length > 5) {
             const keyWordIndex = Math.floor(words.length / 2);
@@ -71,20 +93,99 @@ const FlashcardGenerator = () => {
       });
 
       if (generatedCards.length === 0) {
-        setFlashcards(mockFlashcards);
-      } else {
-        setFlashcards([...generatedCards, ...mockFlashcards].slice(0, 10));
+        generatedCards.push({
+          question: "What is the main topic in your notes?",
+          answer: "Based on your notes, focus on the key concepts discussed."
+        });
       }
-      
+
+      setFlashcards(generatedCards);
       setCurrentCardIndex(0);
       setShowAnswer(false);
-      toast.success(`Generated ${flashcards.length} flashcards!`);
+      toast({
+        title: "Success!",
+        description: `Generated ${generatedCards.length} flashcards`,
+      });
       
     } catch (error) {
-      toast.error("Failed to generate flashcards. Please try again.");
+      toast({
+        title: "Generation failed",
+        description: "Please try again",
+        variant: "destructive",
+      });
     } finally {
       setIsGenerating(false);
     }
+  };
+
+  const saveFlashcardSet = async () => {
+    if (!user) {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to save flashcards",
+        variant: "destructive",
+      });
+      navigate("/auth");
+      return;
+    }
+
+    if (!setTitle.trim()) {
+      toast({
+        title: "Title required",
+        description: "Please enter a title for your flashcard set",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const { data: setData, error: setError } = await supabase
+      .from("flashcard_sets")
+      .insert({
+        user_id: user.id,
+        title: setTitle.trim(),
+        description: setDescription.trim(),
+        is_public: isPublic,
+      })
+      .select()
+      .single();
+
+    if (setError || !setData) {
+      toast({
+        title: "Save failed",
+        description: setError?.message || "Failed to save flashcard set",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const flashcardsToInsert = flashcards.map(card => ({
+      set_id: setData.id,
+      front: card.question,
+      back: card.answer,
+    }));
+
+    const { error: cardsError } = await supabase
+      .from("flashcards")
+      .insert(flashcardsToInsert);
+
+    if (cardsError) {
+      toast({
+        title: "Save failed",
+        description: cardsError.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "Saved!",
+      description: "Your flashcard set has been saved",
+    });
+    setSaveDialogOpen(false);
+    setSetTitle("");
+    setSetDescription("");
+    setIsPublic(false);
+    fetchSavedSets(user.id);
   };
 
   const nextCard = () => {
@@ -102,29 +203,17 @@ const FlashcardGenerator = () => {
     setFlashcards(shuffled);
     setCurrentCardIndex(0);
     setShowAnswer(false);
-    toast.success("Cards shuffled!");
+    toast({ title: "Cards shuffled!" });
   };
 
   const resetSession = () => {
     setCurrentCardIndex(0);
     setShowAnswer(false);
-    toast.success("Session reset!");
+    toast({ title: "Session reset!" });
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Link to="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
-              <Home className="h-6 w-6 text-primary" />
-              <span className="text-lg font-semibold">Intellia</span>
-            </Link>
-          </div>
-        </div>
-      </header>
-
+    <Layout>
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-8">
@@ -133,27 +222,21 @@ const FlashcardGenerator = () => {
               AI Flashcard Generator
             </h1>
             <p className="text-xl text-muted-foreground">
-              Transform your notes into interactive study cards with AI
+              Transform your notes into interactive study cards
             </p>
           </div>
 
           {flashcards.length === 0 ? (
-            // Notes Input Section
             <Card>
               <CardHeader>
                 <CardTitle>Enter Your Notes</CardTitle>
                 <CardDescription>
-                  Paste your study notes, lecture content, or textbook excerpts. Our AI will create flashcards automatically.
+                  Paste your study notes and we'll create flashcards automatically
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <Textarea
-                  placeholder="Enter your notes here... 
-
-For example:
-- Photosynthesis is the process by which plants convert sunlight into energy
-- The mitochondria is known as the powerhouse of the cell
-- DNA stands for Deoxyribonucleic acid"
+                  placeholder="Enter your notes here..."
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   className="min-h-[200px]"
@@ -167,7 +250,7 @@ For example:
                   {isGenerating ? (
                     <>
                       <Brain className="mr-2 h-5 w-5 animate-spin" />
-                      Generating Flashcards...
+                      Generating...
                     </>
                   ) : (
                     <>
@@ -176,15 +259,32 @@ For example:
                     </>
                   )}
                 </Button>
+
+                {savedSets.length > 0 && (
+                  <div className="mt-8">
+                    <h3 className="text-lg font-semibold mb-4">Your Saved Sets</h3>
+                    <div className="space-y-2">
+                      {savedSets.map((set) => (
+                        <Card key={set.id} className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h4 className="font-medium">{set.title}</h4>
+                              {set.description && <p className="text-sm text-muted-foreground">{set.description}</p>}
+                            </div>
+                            {set.is_public && <Badge variant="secondary">Public</Badge>}
+                          </div>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           ) : (
-            // Flashcards Study Section
             <div className="space-y-6">
-              {/* Study Controls */}
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div className="flex items-center gap-2">
-                  <Badge variant="secondary" className="text-sm">
+                  <Badge variant="secondary">
                     Card {currentCardIndex + 1} of {flashcards.length}
                   </Badge>
                   <Separator orientation="vertical" className="h-6" />
@@ -197,26 +297,69 @@ For example:
                     Reset
                   </Button>
                 </div>
-                <Button 
-                  variant="outline" 
-                  onClick={() => setFlashcards([])}
-                  className="text-muted-foreground"
-                >
-                  Generate New Cards
-                </Button>
+                <div className="flex gap-2">
+                  <Dialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button variant="outline">
+                        <Save className="h-4 w-4 mr-2" />
+                        Save Set
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Save Flashcard Set</DialogTitle>
+                        <DialogDescription>
+                          Save your flashcards to access them later
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div>
+                          <Label htmlFor="title">Title</Label>
+                          <Input
+                            id="title"
+                            value={setTitle}
+                            onChange={(e) => setSetTitle(e.target.value)}
+                            placeholder="e.g., Biology Chapter 3"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="description">Description (optional)</Label>
+                          <Textarea
+                            id="description"
+                            value={setDescription}
+                            onChange={(e) => setSetDescription(e.target.value)}
+                            placeholder="Add a description..."
+                            rows={3}
+                          />
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="public">Make public</Label>
+                          <Switch
+                            id="public"
+                            checked={isPublic}
+                            onCheckedChange={setIsPublic}
+                          />
+                        </div>
+                        <Button onClick={saveFlashcardSet} className="w-full">
+                          Save Flashcards
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                  <Button variant="outline" onClick={() => setFlashcards([])}>
+                    New Set
+                  </Button>
+                </div>
               </div>
 
-              {/* Flashcard Display */}
-              <Card className="min-h-[300px] cursor-pointer transition-all duration-300 hover:shadow-elegant">
+              <Card className="min-h-[300px] cursor-pointer transition-all hover:shadow-lg">
                 <CardContent 
-                  className="p-8 flex flex-col justify-center items-center text-center h-full min-h-[300px]"
+                  className="p-8 flex flex-col justify-center items-center text-center min-h-[300px]"
                   onClick={() => setShowAnswer(!showAnswer)}
                 >
-                  <div className="mb-4">
-                    <Badge variant={showAnswer ? "default" : "secondary"}>
-                      {showAnswer ? "Answer" : "Question"}
-                    </Badge>
-                  </div>
+                  <Badge variant={showAnswer ? "default" : "secondary"} className="mb-4">
+                    {showAnswer ? "Answer" : "Question"}
+                  </Badge>
                   <div className="text-xl leading-relaxed">
                     {showAnswer 
                       ? flashcards[currentCardIndex]?.answer 
@@ -229,38 +372,18 @@ For example:
                 </CardContent>
               </Card>
 
-              {/* Navigation Controls */}
               <div className="flex justify-center gap-4">
-                <Button variant="outline" onClick={prevCard}>
-                  Previous
-                </Button>
-                <Button 
-                  variant={showAnswer ? "default" : "secondary"}
-                  onClick={() => setShowAnswer(!showAnswer)}
-                >
+                <Button variant="outline" onClick={prevCard}>Previous</Button>
+                <Button onClick={() => setShowAnswer(!showAnswer)}>
                   {showAnswer ? "Show Question" : "Show Answer"}
                 </Button>
-                <Button variant="outline" onClick={nextCard}>
-                  Next
-                </Button>
-              </div>
-
-              {/* Quick Actions */}
-              <div className="flex justify-center gap-2">
-                <Button variant="outline" size="sm" className="text-success">
-                  <Check className="h-4 w-4 mr-2" />
-                  Know It
-                </Button>
-                <Button variant="outline" size="sm" className="text-destructive">
-                  <X className="h-4 w-4 mr-2" />
-                  Study More
-                </Button>
+                <Button variant="outline" onClick={nextCard}>Next</Button>
               </div>
             </div>
           )}
         </div>
       </div>
-    </div>
+    </Layout>
   );
 };
 

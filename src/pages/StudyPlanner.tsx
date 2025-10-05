@@ -1,11 +1,11 @@
 import { useState } from "react";
+import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, Plus, Trash2, Home } from "lucide-react";
-import { Link } from "react-router-dom";
-import { toast } from "sonner";
+import { Calendar, Plus, Trash2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface ExamAssignment {
   id: string;
@@ -15,6 +15,7 @@ interface ExamAssignment {
 }
 
 const StudyPlanner = () => {
+  const { toast } = useToast();
   const [items, setItems] = useState<ExamAssignment[]>([]);
   const [studyPlan, setStudyPlan] = useState<string[]>([]);
 
@@ -78,17 +79,7 @@ const StudyPlanner = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
-          <Link to="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
-            <Home className="h-6 w-6 text-primary" />
-            <span className="text-lg font-semibold">Intellia</span>
-          </Link>
-        </div>
-      </header>
-
+    <Layout>
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-8">
@@ -192,7 +183,7 @@ const StudyPlanner = () => {
           </div>
         </div>
       </div>
-    </div>
+    </Layout>
   );
 };
 

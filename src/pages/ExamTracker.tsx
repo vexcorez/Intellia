@@ -1,12 +1,12 @@
 import { useState } from "react";
+import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { CheckSquare, Plus, Trash2, Home, BookOpen } from "lucide-react";
-import { Link } from "react-router-dom";
-import { toast } from "sonner";
+import { CheckSquare, Plus, Trash2, BookOpen } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface StudyTopic {
   id: string;
@@ -24,6 +24,7 @@ interface Exam {
 }
 
 const ExamTracker = () => {
+  const { toast } = useToast();
   const [exams, setExams] = useState<Exam[]>([]);
   const [newExamName, setNewExamName] = useState("");
   const [newExamDate, setNewExamDate] = useState("");

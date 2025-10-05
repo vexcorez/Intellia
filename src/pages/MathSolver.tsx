@@ -1,11 +1,11 @@
 import { useState } from "react";
+import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calculator, Home, Copy, Sparkles } from "lucide-react";
-import { Link } from "react-router-dom";
-import { toast } from "sonner";
+import { Calculator, Copy, Sparkles } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 interface SolutionStep {
@@ -19,6 +19,7 @@ interface Solution {
 }
 
 const MathSolver = () => {
+  const { toast } = useToast();
   const [problem, setProblem] = useState("");
   const [solution, setSolution] = useState<Solution | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
