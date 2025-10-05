@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Calculator, Home, Copy, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface SolutionStep {
   step: string;
@@ -22,11 +23,6 @@ const MathSolver = () => {
   const [solution, setSolution] = useState<Solution | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // Show alert once on component mount
-  useEffect(() => {
-    toast.error("The math AI is pretty buggy and not fully developed.");
-  }, []);
-
   const solveProblem = async () => {
     if (!problem.trim()) {
       toast.error("Please enter a math problem to solve");
@@ -34,49 +30,28 @@ const MathSolver = () => {
     }
 
     setIsProcessing(true);
+    setSolution(null);
     
     try {
-      // Mock AI solving - replace with actual AI API
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Simple mock solution for demonstration
-      let mockSolution: Solution;
-      
-      if (problem.toLowerCase().includes("quadratic") || problem.includes("x²") || problem.includes("x^2")) {
-        mockSolution = {
-          answer: "x = 3, x = -2",
-          steps: [
-            { step: "x² - x - 6 = 0", explanation: "Given quadratic equation" },
-            { step: "(x - 3)(x + 2) = 0", explanation: "Factor the quadratic expression" },
-            { step: "x - 3 = 0  or  x + 2 = 0", explanation: "Apply zero product property" },
-            { step: "x = 3  or  x = -2", explanation: "Solve each linear equation" }
-          ]
-        };
-      } else if (problem.includes("derivative") || problem.includes("d/dx")) {
-        mockSolution = {
-          answer: "f'(x) = 3x² + 2x",
-          steps: [
-            { step: "f(x) = x³ + x² + C", explanation: "Given function" },
-            { step: "d/dx[x³] = 3x²", explanation: "Apply power rule to first term" },
-            { step: "d/dx[x²] = 2x", explanation: "Apply power rule to second term" },
-            { step: "f'(x) = 3x² + 2x", explanation: "Combine derivatives" }
-          ]
-        };
-      } else {
-        mockSolution = {
-          answer: "x = 5",
-          steps: [
-            { step: "2x + 3 = 13", explanation: "Given linear equation" },
-            { step: "2x = 13 - 3", explanation: "Subtract 3 from both sides" },
-            { step: "2x = 10", explanation: "Simplify right side" },
-            { step: "x = 5", explanation: "Divide both sides by 2" }
-          ]
-        };
+      const { data, error } = await supabase.functions.invoke('solve-math', {
+        body: { problem }
+      });
+
+      if (error) {
+        console.error("Error solving problem:", error);
+        toast.error(error.message || "Failed to solve problem. Please try again.");
+        return;
       }
-      
-      setSolution(mockSolution);
+
+      if (data?.error) {
+        toast.error(data.error);
+        return;
+      }
+
+      setSolution(data);
       toast.success("Problem solved successfully!");
     } catch (error) {
+      console.error("Error solving problem:", error);
       toast.error("Failed to solve problem. Please try again.");
     } finally {
       setIsProcessing(false);
